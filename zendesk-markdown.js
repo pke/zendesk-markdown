@@ -2,18 +2,16 @@
 // @name         Zendesk user ticket markdown
 // @name:de      Zendesk Kundenticket Markdown
 // @namespace    https://github.com/pke/zendesk-markdown
-// @version      1.2
+// @version      1.3
 // @license      MIT
 // @description  Renders markdown in user sent tickets
 // @description:de Stellt markdown in Kundentickets dar
 // @author       Philipp Kursawe <pke@pke.fyi>
 // @match        https://*.zendesk.com/agent/tickets/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=zendesk.com
-// @run-at       document-start
-// @downloadURL  https://raw.githubusercontent.com/pke/zendesk-markdown/main/zendesk-markdown.js
-// @updateURL    https://raw.githubusercontent.com/pke/zendesk-markdown/main/zendesk-markdown.js
+// @run-at       document-end
 // @supportURL   https://github.com/pke/zendesk-markdown/discussions
-// @grant        none
+// @grant        GM_log
 // ==/UserScript==
 
 /* eslint-disable */
@@ -31,16 +29,24 @@
 (function() {
     'use strict';
 
-    // Wait in 100ms intervals for the GraphQL query that fetches the user issue
-    // to finish and then fill the zd-comment element with proper formatted markdown.
-    var interval = setInterval(function() {
-        var commentNode = document.querySelector(".zd-comment");
-        if (commentNode && commentNode.textContent) {
-            // Grab the elements textContent which preserves indentions made 
-            // by "  " constructs but strips all markup code.
-            commentNode.innerHTML = marked.parse(commentNode.textContent);
-            // Clear ourselfs out to save resources
-            clearInterval(interval);
+    function onChange(mutations, observer) {
+        for (const mutation of mutations) {
+            if (mutation.addedNodes.length) {
+                for (const commentNode of document.getElementsByClassName("zd-comment")) {
+                    // Already processed nodes are marked for not processing them again
+                    if (!commentNode.markdowned) {
+                        // GM_log("Added node:", commentNode.textContent);
+                        // Grab the elements textContent which preserves indentions made
+                        // by "  " constructs but strips all markup code.
+                        commentNode.innerHTML = marked.parse(commentNode.textContent);
+                        commentNode.markdowned = true;
+                    }
+                }
+            }
         }
-    }, 100);
+    }
+
+    // Wait for .zd-comment nodes to be created and convert their textContent to markdown, then disconnect
+    var observer = new MutationObserver(onChange);
+    observer.observe(document.body, { subtree: true, childList: true });
 })();
