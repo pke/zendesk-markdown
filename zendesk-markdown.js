@@ -2,7 +2,8 @@
 // @name         Zendesk user ticket markdown
 // @name:de      Zendesk Kundenticket Markdown
 // @namespace    https://github.com/pke/zendesk-markdown
-// @version      1.0
+// @version      1.1
+// @license      MIT
 // @description  Renders markdown in user sent tickets
 // @description:de Stellt markdown in Kundentickets dar
 // @author       Philipp Kursawe <pke@pke.fyi>
